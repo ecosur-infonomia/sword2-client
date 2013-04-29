@@ -1,0 +1,19 @@
+{
+    "name": "ecosur-infonomia/ddi-sword2",
+    "version": "0.0.1",
+    "repositories": [{
+        "type": "package",
+        "package": {
+            "name": "swordapp/swordappv2-php-library", 
+            "version": "0.1.0",
+            "source": {
+                "url": "https://github.com/swordapp/swordappv2-php-library",
+                "type": "git",
+                "reference": "master"
+            }
+        }
+    }],
+	"require": {
+    	"swordapp/swordappv2-php-library" : "0.1.0"
+    }
+}
