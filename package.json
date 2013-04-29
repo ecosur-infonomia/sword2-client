@@ -1,0 +1,20 @@
+{
+    "name": "ddi-sword2",
+    "version": "0.0.1",
+    "description": "DDI Sword2 implementation",
+    "keywords": ["grunt","phpunit","phpunit","sword2"],
+    "authors": [
+        {
+            "name": "Andrew Waterman",
+            "email": "awaterma@ecosur.mx",
+            "homepage": "http://awaterma.net"
+        }
+    ],
+    "license": "GPL3",
+    "devDependencies": {
+        "grunt": "~0.4.1",
+        "grunt-contrib-clean": "0.4.1",
+        "grunt-phplint" : "~0.0.5",
+        "grunt-phpunit": "~0.2.1"
+    }
+}

@@ -1,6 +1,9 @@
 {
     "name": "ecosur-infonomia/ddi-sword2",
     "version": "0.0.1",
+    "config": {
+        "vendor-dir": "src/vendor"
+    },
     "repositories": [{
         "type": "package",
         "package": {
@@ -13,7 +16,11 @@
             }
         }
     }],
-	"require": {
-    	"swordapp/swordappv2-php-library" : "0.1.0"
+    "require": {
+    	"swordapp/swordappv2-php-library" : "0.1.0",
+        "php" : ">=5.1.3"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
     }
 }
