@@ -1,4 +1,7 @@
 src/vendor
+src/config.php
+src/Config.php
+test/TestConfig.php
 composer.phar
 composer.lock
 node_modules

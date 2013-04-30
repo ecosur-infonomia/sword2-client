@@ -1,6 +1,6 @@
 <?php
 
-require('src/SwordService.php');
+require_once('src/SwordService.php');
 
 class AtomFromJSONTest extends PHPUnit_Framework_TestCase
 {
@@ -22,7 +22,7 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
             'summary'=>'A discussion on mud.'
         );   
         
-        $sword = new SwordService(); 
+        $sword = new SwordService('','','',''); 
         $actual = $sword->generate_atom($test_array);
         $this->assertXmlStringEqualsXmlString($expected,$actual,$actual);
     }
@@ -53,7 +53,7 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
             'dcterms:title'=>'Test Temporary Title'             
         );
 
-        $sword = new SwordService();
+        $sword = new SwordService('','','','');
         $actual = $sword->generate_atom($test_array);
         $this->assertXmlStringEqualsXmlString($expected,$actual,$actual);
     }

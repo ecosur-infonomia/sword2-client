@@ -12,10 +12,28 @@
  *
  * Author: "Andrew G. Waterman" <awaterma@ecosur.mx>
 **/
-require 'config.php';
+require_once('vendor/swordapp/swordappv2-php-library/swordappclient.php');
 
 class SwordService {
 
+	var $URL, $User, $Pass;
+
+	function __construct($URL, $User, $Pass) {
+		$this->URL = $URL;
+		$this->User = $User;
+		$this->Pass = $Pass;
+	}
+	
+	public function service_document() {
+		$sword = new SWORDAPPClient();
+        return $sword->servicedocument($this->URL . '/sword/servicedocument', $this->User, $this->Pass, null);
+	}
+
+	public function publish ($p_url, $metadata) {
+		$sword = new SWORDAPPClient();
+		$fileName = $metadata["filename"];
+		return $sword->deposit($p_url, $this->User, $this->Pass, '', $fileName);
+	}
 	/* Generates an ATOM document from a given JSON dictionary */
 	public function generate_atom($document) {
 		/* Explicitly unset the filename key from the document array */
@@ -52,10 +70,5 @@ class SwordService {
 		return $writer->outputMemory(true);	
 	}
 
-	public function publish ($metadata) {
-		$file = $metadata["filename"];
-		/* Convert the json metadata block into an associative array
-		   for processing */
-		$atom = generate_atom($document);	
-	}
+	
 }
