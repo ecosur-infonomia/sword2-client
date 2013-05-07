@@ -41,29 +41,14 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
 
     public function testConnectivity() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $sd = $sword->service_document();
-        $this->assertEquals(200,$sd->sac_status);
+        $resp = $sword->service_document();
+        $this->assertEquals(200,$resp->getStatusCode());
     }
 
     public function testDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $sd = $sword->service_document();
-        $p_url = null;
-        /* Seek the 'Public Collection' deposit URL */
-        foreach ($sd->sac_workspaces as $workspace) {
-            if ($p_url != null)
-                break;
-            $collections = $workspace->sac_collections;
-            foreach ($collections as $collection) { 
-                if ($collection->sac_colltitle == 'Public Collection') {
-                    $p_url = $collection->sac_href;
-                    break;
-                }
-            }
-        }
-        $this->assertNotNull($p_url,'Null publish URL!');
-        $resp = $sword->publish($p_url, $this->metadata);
-        $this->assertEquals(201,$resp->sac_status, 'Publication Not Accepted! ' . $resp->sac_statusmessage);
+        $resp = $sword->publish('Collection of Sample Items', $this->metadata);
+        $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->sac_statusmessage);
     }
 
     public function testUpdateDeposit() {
