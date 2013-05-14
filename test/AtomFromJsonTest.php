@@ -5,9 +5,9 @@ require_once('src/SwordService.php');
 class AtomFromJSONTest extends PHPUnit_Framework_TestCase
 {
     /* Tests the creation of an Atom XML file from a JSON string */
-    public function testCreateAtom() { 
+    function testCreateAtom() {
         $expected = '<?xml version="1.0"?>' .
-            '<entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms">'. 
+            '<entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms" xmlns:mets="http://www.loc.gov/METS/">'.
             '<title>Test Temporary Title</title>'. 
             '<author><name>Dr. Eager Beaver</name></author>'.
             '<id>facebook.com/EagerBeaver</id>'.
@@ -23,14 +23,14 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
         );   
         
         $sword = new SwordService('','','',''); 
-        $actual = $sword->generate_atom($test_array);
+        $actual = $sword->generateAtom($test_array);
         $this->assertXmlStringEqualsXmlString($expected,$actual,$actual);
     }
 
     /* Creates a 'extended' atom document with Dublin Core fields */
-    public function testExtendedAtom() {
+    function testExtendedAtom() {
         $expected = '<?xml version="1.0"?>' .
-            '<entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms">'. 
+            '<entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms" xmlns:mets="http://www.loc.gov/METS/">'.
             '<title>Test Temporary Title</title>'. 
             '<author><name>Dr. Eager Beaver</name></author>'.
             '<id>facebook.com/EagerBeaver</id>'.
@@ -54,7 +54,7 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
         );
 
         $sword = new SwordService('','','','');
-        $actual = $sword->generate_atom($test_array);
+        $actual = $sword->generateAtom($test_array);
         $this->assertXmlStringEqualsXmlString($expected,$actual,$actual);
     }
 }

@@ -10,7 +10,7 @@ require_once('TestConfig.php');
 class IntegrationTest extends PHPUnit_Framework_TestCase
 {
     var $metadata = array (
-        'filename'=>'src/vendor/swordapp/swordappv2-php-library/test/test-files/atom_multipart/if-sword-is-the-answer.pdf',
+        'filename'=>'src/vendor/swordappv2-php-library/test/test-files/atom_multipart/if-sword-is-the-answer.pdf',
         'title'=>'If Sword is the Answer',
         'author'=>'Stuart Lewis',
         'dcterms:abstract'=>"Purpose ‐ To describe the repository deposit protocol, Simple 
@@ -39,23 +39,23 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
         'dcterms:type'=>'swordv2-test'
     );
 
-    public function testConnectivity() {
+    function testConnectivity() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
         $resp = $sword->service_document();
         $this->assertEquals(200,$resp->getStatusCode());
     }
 
-    public function testDeposit() {
+    function testDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
         $resp = $sword->publish('Collection of Sample Items', $this->metadata);
-        $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->sac_statusmessage);
+        $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
     }
 
-    public function testUpdateDeposit() {
+    function testUpdateDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
     }
 
-    public function testDeleteDeposit() {
+    function testDeleteDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
     }
 }
