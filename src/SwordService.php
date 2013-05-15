@@ -53,7 +53,7 @@ class SwordService {
             $atomPost->setContentType('application/atom+xml');
             $request->addPostFile($atomPost);
             $zipPost = new PostFile('payload', $zip);
-            $zipPost->setContentType('Content-Type: application/zip');
+            $zipPost->setContentType('application/zip');
             $request->addPostFile($zipPost);
 
             try {
