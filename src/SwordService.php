@@ -34,7 +34,7 @@ class SwordService {
         /* Get the href for the named collection */
         $atom = $this->generateAtom($metadata);
         $response = null;
-        try {
+            try {
             $response = $this->postAtom($this->findCollectionHref($metadata['collection']), $atom);
             $href = $this->discoverEditMediaHref($response);
             $seiri = $this->discover_SEIRI_ref($response);
@@ -53,7 +53,7 @@ class SwordService {
 
         /* Try to always unlink (delete) zip */
         if (isset($zip)) {
-            unlink($zip);
+        unlink($zip);
         }
 
         /* Return HTTP response */
@@ -70,7 +70,7 @@ class SwordService {
         ));
         $request->setBody($atom);
         return $request->send();
-    }
+        }
 
     private function postBinary($href, $binary, $type) {
         $request = $this->client->post($href);
@@ -92,7 +92,7 @@ class SwordService {
             'In-Progress'=>'false'
         ));
         return $request->send();
-    }
+	}
 
     private function findCollectionHref($collection) {
         $href = null;
@@ -151,13 +151,13 @@ class SwordService {
         $xmlref->registerXPathNamespace('atom','http://www.w3.org/2005/Atom');
 
     }
-
+	
 	/* Generates an ATOM document from a given JSON dictionary */
 	function generateAtom($document) {
 		$writer = new XMLWriter;
 		$writer->openMemory();
 		$writer->startDocument('1.0');
-
+		
 		/* Atom Entry */
 		$writer->startElement('atom:entry');
 		$writer->writeAttribute('xmlns:atom','http://www.w3.org/2005/Atom');
@@ -172,7 +172,7 @@ class SwordService {
 				$writer->text($val);
 				$writer->endElement();
 				$writer->endElement();
-			} else {
+            } else {
 				$writer->startElement($key);
 				$writer->text($val);
 				$writer->endElement();
