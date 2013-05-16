@@ -12,31 +12,28 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
     var $metadata = array (
         'filename'=>'src/vendor/swordappv2-php-library/test/test-files/atom_multipart/if-sword-is-the-answer.pdf',
         'title'=>'If Sword is the Answer',
+        'updated'=>'2013-05-15',
         'author'=>'Stuart Lewis',
-        'dcterms:abstract'=>"Purpose ‐ To describe the repository deposit protocol, Simple 
-            Web‐service Offering Repository Deposit (SWORD), 
-            its development iteration, and some of its potential use cases.
-            In addition, seven case studies of institutional use of SWORD are provided. 
-            Approach ‐ The paper describes the recent development cycle of the SWORD 
-            standard, with issues being identified and overcome with a subsequent version. 
-            Use cases and case studies of the new standard in action are included to 
-            demonstrate the wide range of practical uses of the SWORD standard. 
-            Implications ‐ SWORD has many potential use cases and has quickly become  
-            the de facto standard for depositing items into repositories. By making 
-            use of a widely‐supported interoperable standard, tools can be created that 
-            start to overcome some of the problems of gathering content for deposit into 
-            institutional repositories. They can do this by changing the submission process 
-            from a ‘one‐size‐fits‐all’ solution, as provided by the repositorys own user 
-            interface, to customised solutions for different users. 
-            Originality ‐ Many of the case studies described in this paper are new and 
-            unpublished, and describe methods of creating novel interoperable tools for 
-            depositing items into repositories. The description of SWORD version 1.3 and its 
-            development give an insight into the processes involved with the development of 
-            a new standard.",
+        'abstract'=>'Simple abstract.',
+        'dcterms:abstract'=>"Simple abstract.",
         'dcterms:available'=>'2013',
         'dcterms:creator'=>'Lewis, Stuart',
         'dcterms:title'=>'If Sword is the Answer',
-        'dcterms:type'=>'swordv2-test'
+        'dcterms:type'=>'swordv2-test',
+        'dcterms:accessRights'=>'Access Rights',
+        'dcterms:alternative'=>'Alternative Title',
+        'dcterms:available'=>'Date Available',
+        'dcterms:bibliographicCitation'=>'Bibliographic Citation',
+        'dcterms:contributor'=>'Contributor',
+        'dcterms:description'=>'Description',
+        'dcterms:hasPartHas'=>'Part',
+        'dcterms:hasVersionHas'=>'Version',
+        'dcterms:identifier'=>'Identifier',
+        'dcterms:isPartOf'=>'Is Part Of',
+        'dcterms:publisher'=>'Publisher',
+        'dcterms:references'=>'References',
+        'dcterms:rightsHolderRights'=>'Holder',
+        'dcterms:source'=>'Source'
     );
 
     function testConnectivity() {
@@ -49,6 +46,13 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
         $sword = new SwordService(TestURL, TestUser, TestPass);
         $resp = $sword->publish('Collection of Sample Items', $this->metadata);
         $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
+    }
+
+    function testExample() {
+        $sword = new SwordService(TestURL, TestUser, TestPass);
+        $href = $sword->findHref('Collection of Sample Items');
+        $resp = $sword->postZip($href, 'resources/BurningStubble.zip');
+        $this->assertEquals(201,$resp->getStatusCode(), 'BurningStubble.zip not published! ' . $resp->getMessage());
     }
 
     function testUpdateDeposit() {

@@ -4,21 +4,8 @@
     "config": {
         "vendor-dir": "src/vendor"
     },
-    "repositories": [{
-        "type": "package",
-        "package": {
-            "name": "swordappv2-php-library",
-            "version": "0.1.0",
-            "source": {
-                "url": "https://github.com/swordapp/swordappv2-php-library",
-                "type": "git",
-                "reference": "master"
-            }
-        }
-    }],
     "require": {
         "guzzle/guzzle": "~3.1",
-        "swordappv2-php-library" : "0.1.0",
         "php" : ">=5.3.0"
     },
     "require-dev": {
