@@ -51,8 +51,8 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
     function testExample() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
         $href = $sword->findHref('Collection of Sample Items');
-        $resp = $sword->postZip($href, 'resources/BurningStubble.zip');
-        $this->assertEquals(201,$resp->getStatusCode(), 'BurningStubble.zip not published! ' . $resp->getMessage());
+        $resp = $sword->postZip($href, 'resources/example.zip');
+        $this->assertEquals(201,$resp->getStatusCode(), 'example.zip not published! ' . $resp->getMessage());
     }
 
     function testUpdateDeposit() {
