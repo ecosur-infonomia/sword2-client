@@ -33,7 +33,6 @@ class SwordService {
 	function publish ($metadata, $files) {
         /* Get the href for the named collection */
         $href = $this->findHref($metadata['collection']);
-        unset($metadata["collection"]);
 
         /*  Construct AtomXMl document from metadata
             TODO: Flatten metadata and setup formatting for custom Mets ingestors.
@@ -43,44 +42,46 @@ class SwordService {
 
         $response = null;
         try {
-            $response = $this->postAtom($href, $atom);
-            //$receipt = unpackReceipt($response);
-            //$href = $receipt['href'];
-            //$response = $this->putZip($href, $zip);
+            $response = $this->postZip($href, $zip);
+            $href = $this->findEditHref($response);
+            $response = $this->putAtom($href, $atom);
         } catch (Exception $e) {
-            unlink($zip);
+            if (isset($zip)) {
+                unlink($zip);
+            }
             throw $e;
         }
 
         /* Try to always unlink (delete) zip */
-        unlink($zip);
+        if (isset($zip)) {
+            unlink($zip);
+        }
 
         /* Return HTTP response */
         return $response;
 	}
 
-    private function postAtom($href, $atom) {
-        $request = $this->client->post($href);
+    private function putAtom($href, $atom) {
+        $request = $this->client->put($href);
         $request->addHeaders(array(
             'Content-Type'=>'application/atom+xml;type=entry',
             'Content-Length'=>strlen($atom),
-            'In-Progress'=>'true',
+            'In-Progress'=>'false',
             'X-Packaging'=>'http://purl.org/net/sword-types/METSDSpaceSIP',
-            'X-Verbose'=>'true'
         ));
         $request->setBody($atom);
         return $request->send();
     }
 
-    private function putZip($href, $binary) {
+    private function postZip($href, $binary) {
         $request = $this->client->post($href);
         $eb = new \Guzzle\Http\EntityBody(fopen($binary,'r'));
         $request->addHeaders(array(
             'Content-Type'=>'application/zip',
-            'Content-Disposition'=>'filename=' . $binary,
+            'Content-Disposition'=>'filename=' . $binary . '',
             'Content-Length'=>$eb->getContentLength(),
+            'In-Progress'=>'true',
             'X-Packaging'=>'http://purl.org/net/sword-types/METSDSpaceSIP',
-            'X-Verbose'=>'true'
         ));
         $request->setBody($eb);
         return $request->send();
@@ -99,7 +100,7 @@ class SwordService {
         return $zipfile;
     }
 
-    function findHref($collection) {
+    private function findHref($collection) {
         $href = null;
         $response = $this->service_document();
         if ($response->getStatusCode() == 200) {
@@ -131,6 +132,22 @@ class SwordService {
 
     }
 
+    private function findEditHref($response)
+    {
+        $receipt = $response->xml();
+        $this->registerForSearch($receipt);
+        $edit_href = null;
+        $xpath = "*[@rel='edit']";
+        $edit = $receipt->xpath($xpath);
+        foreach ($edit[0]->attributes() as $a => $b) {
+            if ($a === 'href') {
+                $edit_href = $b;
+                break;
+            }
+        }
+        return $edit_href;
+    }
+
 	/* Generates an ATOM document from a given JSON dictionary */
 	function generateAtom($document) {
 		$writer = new XMLWriter;
@@ -138,7 +155,7 @@ class SwordService {
 		$writer->startDocument('1.0');
 
 		/* Atom Entry */
-		$writer->startElement('entry');
+		$writer->startElement('atom:entry');
 		$writer->writeAttribute('xmlns:atom','http://www.w3.org/2005/Atom');
 		$writer->writeAttribute('xmlns:dcterms','http://purl.org/dc/terms');
         $writer->writeAttribute('xmlns:mets','http://www.loc.gov/METS/');
@@ -146,15 +163,12 @@ class SwordService {
 		foreach ($document as $key=>$val) {
 			if ($key == 'author') {
 				/* Author is a special case */
-                $writer->startElement($key);
+                $writer->startElement('author');
 				$writer->startElement('name');
 				$writer->text($val);
 				$writer->endElement();
 				$writer->endElement();
-			} else if ($key == 'mets') {
-                /* As is all METS data */
-                echo('Mets data.');
-            } else {
+			} else {
 				$writer->startElement($key);
 				$writer->text($val);
 				$writer->endElement();
@@ -171,4 +185,5 @@ class SwordService {
 	function __destroy() {
 		$this->client = null;
     }
+
 }

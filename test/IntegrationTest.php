@@ -10,11 +10,10 @@ require_once('TestConfig.php');
 class IntegrationTest extends PHPUnit_Framework_TestCase
 {
     var $metadata = array (
+        'author'=>'Stuart Lewis',
         'collection'=>'Collection of Sample Items',
         'title'=>'If Sword is the Answer',
         'updated'=>'2013-05-15',
-        'author'=>'Stuart Lewis',
-        'abstract'=>'Simple abstract.',
         'dcterms:abstract'=>"Simple abstract.",
         'dcterms:available'=>'2013',
         'dcterms:creator'=>'Lewis, Stuart',
@@ -42,23 +41,9 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(200,$resp->getStatusCode());
     }
 
-    function testSimpleDeposit() {
-        $sword = new SwordService(TestURL, TestUser, TestPass);
-        $metadata = array(
-          'collection'=>'Collection of Sample Items',
-          'title'=>'Title'
-        );
-        $resp = $sword->publish($metadata, array(
-            'src/vendor/swordappv2-php-library/test/test-files/atom_multipart/if-sword-is-the-answer.pdf'
-        ));
-        $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
-    }
-
     function testDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $resp = $sword->publish($this->metadata, array(
-            'src/vendor/swordappv2-php-library/test/test-files/atom_multipart/if-sword-is-the-answer.pdf'
-        ));
-        $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
+        $resp = $sword->publish($this->metadata, array('resources/Sword.pdf'));
+        $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
     }
 }
