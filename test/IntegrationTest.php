@@ -47,19 +47,4 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
         $resp = $sword->publish('Collection of Sample Items', $this->metadata);
         $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
     }
-
-    function testExample() {
-        $sword = new SwordService(TestURL, TestUser, TestPass);
-        $href = $sword->findHref('Collection of Sample Items');
-        $resp = $sword->postZip($href, 'resources/example.zip');
-        $this->assertEquals(201,$resp->getStatusCode(), 'example.zip not published! ' . $resp->getMessage());
-    }
-
-    function testUpdateDeposit() {
-        $sword = new SwordService(TestURL, TestUser, TestPass);
-    }
-
-    function testDeleteDeposit() {
-        $sword = new SwordService(TestURL, TestUser, TestPass);
-    }
 }

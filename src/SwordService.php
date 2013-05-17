@@ -30,11 +30,13 @@ class SwordService {
 		return $request->send();
 	}
 
-	function publish ($collection, $metadata) {
+	function publish ($metadata, $files = []) {
         /*  Construct AtomXMl document from metadata
             TODO: Flatten metadata and setup formatting for custom Mets ingestors.
         */
         $atom = $this->saveAtom($this->generateAtom($metadata));
+
+
         $zip = $this->saveZip(array(
             $metadata["filename"], $atom)
         );
