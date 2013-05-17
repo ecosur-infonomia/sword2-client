@@ -15,7 +15,6 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
             '</entry>';
         
         $test_array = array (
-            'filename'=>'resources/TestFile.pdf',
             'title'=>'Test Temporary Title',
             'author'=>'Dr. Eager Beaver',
             'id'=>'facebook.com/EagerBeaver',
@@ -42,7 +41,6 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
             '</entry>';
 
         $test_array = array (
-            'filename'=>'resources/TestFile.pdf',
             'title'=>'Test Temporary Title',
             'author'=>'Dr. Eager Beaver',
             'id'=>'facebook.com/EagerBeaver',

@@ -30,37 +30,49 @@ class SwordService {
 		return $request->send();
 	}
 
-	function publish ($metadata, $files = []) {
+	function publish ($metadata, $files) {
+        /* Get the href for the named collection */
+        $href = $this->findHref($metadata['collection']);
+        unset($metadata["collection"]);
+
         /*  Construct AtomXMl document from metadata
             TODO: Flatten metadata and setup formatting for custom Mets ingestors.
         */
-        $atom = $this->saveAtom($this->generateAtom($metadata));
+        $atom = $this->generateAtom($metadata);
+        $zip = $this->constructZip($files);
 
-
-        $zip = $this->saveZip(array(
-            $metadata["filename"], $atom)
-        );
-
-        /* Get the href for the named collection */
-        $href = $this->findHref($collection);
         $response = null;
         try {
-            $response = $this->postZip($href, $zip);
+            $response = $this->postAtom($href, $atom);
+            //$receipt = unpackReceipt($response);
+            //$href = $receipt['href'];
+            //$response = $this->putZip($href, $zip);
         } catch (Exception $e) {
-            //unlink($zip);
-            unlink($atom);
+            unlink($zip);
             throw $e;
         }
 
         /* Try to always unlink (delete) zip */
         unlink($zip);
-        unlink($atom);
 
         /* Return HTTP response */
         return $response;
 	}
 
-    function postZip($href, $binary) {
+    private function postAtom($href, $atom) {
+        $request = $this->client->post($href);
+        $request->addHeaders(array(
+            'Content-Type'=>'application/atom+xml;type=entry',
+            'Content-Length'=>strlen($atom),
+            'In-Progress'=>'true',
+            'X-Packaging'=>'http://purl.org/net/sword-types/METSDSpaceSIP',
+            'X-Verbose'=>'true'
+        ));
+        $request->setBody($atom);
+        return $request->send();
+    }
+
+    private function putZip($href, $binary) {
         $request = $this->client->post($href);
         $eb = new \Guzzle\Http\EntityBody(fopen($binary,'r'));
         $request->addHeaders(array(
@@ -68,15 +80,13 @@ class SwordService {
             'Content-Disposition'=>'filename=' . $binary,
             'Content-Length'=>$eb->getContentLength(),
             'X-Packaging'=>'http://purl.org/net/sword-types/METSDSpaceSIP',
-            'X-No-Op'=>'true',
             'X-Verbose'=>'true'
-            )
-        );
+        ));
         $request->setBody($eb);
         return $request->send();
     }
 
-    private function saveZip($files) {
+    private function constructZip($files) {
         $zip = new ZipArchive();
         /* Requires a little more work for staging (e.g. multi-process < 1 second) */
         $zipfile = 'swordTemp_' . time() . '.zip';
@@ -87,14 +97,6 @@ class SwordService {
             $zip->close();
         }
         return $zipfile;
-    }
-
-    private function saveAtom($atomxml) {
-        $filename = 'atom' . time() . '.xml';
-        $file = fopen($filename, 'w');
-        fwrite($file, $atomxml);
-        fclose($file);
-        return $filename;
     }
 
     function findHref($collection) {
@@ -131,9 +133,6 @@ class SwordService {
 
 	/* Generates an ATOM document from a given JSON dictionary */
 	function generateAtom($document) {
-		/* Explicitly unset the filename key from the document array */
-		/* Magic Key */
-		unset($document["filename"]);
 		$writer = new XMLWriter;
 		$writer->openMemory();
 		$writer->startDocument('1.0');
