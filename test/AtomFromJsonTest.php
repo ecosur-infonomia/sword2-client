@@ -7,7 +7,7 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
     /* Tests the creation of an Atom XML file from a JSON string */
     function testCreateAtom() {
         $expected = '<?xml version="1.0"?>' .
-            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms" xmlns:mets="http://www.loc.gov/METS/">'.
+            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/terms" xmlns:mets="http://www.loc.gov/METS/">'.
             '<author><name>Dr. Eager Beaver</name></author>'.
             '<atom:title>Test Temporary Title</atom:title>'.
             '<atom:id>facebook.com/EagerBeaver</atom:id>'.
@@ -29,15 +29,15 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
     /* Creates a 'extended' atom document with Dublin Core fields */
     function testExtendedAtom() {
         $expected = '<?xml version="1.0"?>' .
-            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms" xmlns:mets="http://www.loc.gov/METS/">'.
+            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/terms" xmlns:mets="http://www.loc.gov/METS/">'.
             '<author><name>Dr. Eager Beaver</name></author>'.
             '<atom:title>Test Temporary Title</atom:title>'.
             '<atom:id>facebook.com/EagerBeaver</atom:id>'.
             '<atom:summary>A discussion on mud.</atom:summary>'.
-            '<dcterms:abstract>Mud. A discussion in several parts.</dcterms:abstract>'.
-            '<dcterms:available>2013</dcterms:available>'.
-            '<dcterms:creator>Beaver, Dr. Eager</dcterms:creator>'.
-            '<dcterms:title>Test Temporary Title</dcterms:title>'. 
+            '<dc:abstract>Mud. A discussion in several parts.</dc:abstract>'.
+            '<dc:available>2013</dc:available>'.
+            '<dc:creator>Beaver, Dr. Eager</dc:creator>'.
+            '<dc:title>Test Temporary Title</dc:title>'. 
             '</atom:entry>';
 
         $test_array = array (
@@ -45,10 +45,10 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
             'atom:title'=>'Test Temporary Title',
             'atom:id'=>'facebook.com/EagerBeaver',
             'atom:summary'=>'A discussion on mud.',
-            'dcterms:abstract'=>'Mud. A discussion in several parts.',
-            'dcterms:available'=>'2013',
-            'dcterms:creator'=>'Beaver, Dr. Eager',
-            'dcterms:title'=>'Test Temporary Title'             
+            'dc:abstract'=>'Mud. A discussion in several parts.',
+            'dc:available'=>'2013',
+            'dc:creator'=>'Beaver, Dr. Eager',
+            'dc:title'=>'Test Temporary Title'             
         );
 
         $sword = new SwordService('','','','');

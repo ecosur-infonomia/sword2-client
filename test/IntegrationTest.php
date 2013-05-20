@@ -14,25 +14,25 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
         'collection'=>'Collection of Sample Items',
         'title'=>'If Sword is the Answer',
         'updated'=>'2013-05-15',
-        'dcterms:abstract'=>"Simple abstract.",
-        'dcterms:available'=>'2013',
-        'dcterms:creator'=>'Lewis, Stuart',
-        'dcterms:title'=>'If Sword is the Answer',
-        'dcterms:type'=>'swordv2-test',
-        'dcterms:accessRights'=>'Access Rights',
-        'dcterms:alternative'=>'Alternative Title',
-        'dcterms:available'=>'Date Available',
-        'dcterms:bibliographicCitation'=>'Bibliographic Citation',
-        'dcterms:contributor'=>'Contributor',
-        'dcterms:description'=>'Description',
-        'dcterms:hasPartHas'=>'Part',
-        'dcterms:hasVersionHas'=>'Version',
-        'dcterms:identifier'=>'Identifier',
-        'dcterms:isPartOf'=>'Is Part Of',
-        'dcterms:publisher'=>'Publisher',
-        'dcterms:references'=>'References',
-        'dcterms:rightsHolderRights'=>'Holder',
-        'dcterms:source'=>'Source'
+        'dc:abstract'=>"Simple abstract.",
+        'dc:available'=>'2013',
+        'dc:contributor.author'=>'Lewis, Stuart',
+        'dc:title'=>'If Sword is the Answer',
+        'dc:type'=>'swordv2-test',
+        'dc:accessRights'=>'Access Rights',
+        'dc:alternative'=>'Alternative Title',
+        'dc:available'=>'Date Available',
+        'dc:bibliographicCitation'=>'Bibliographic Citation',
+        'dc:contributor'=>'Contributor',
+        'dc:description'=>'Description',
+        'dc:hasPartHas'=>'Part',
+        'dc:hasVersionHas'=>'Version',
+        'dc:identifier'=>'Identifier',
+        'dc:isPartOf'=>'Is Part Of',
+        'dc:publisher'=>'Publisher',
+        'dc:references'=>'References',
+        'dc:rightsHolderRights'=>'Holder',
+        'dc:source'=>'Source'
     );
 
     function testConnectivity() {
@@ -43,7 +43,14 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
 
     function testDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $resp = $sword->publish($this->metadata, array('resources/Sword.pdf'));
+        $resp = $sword->publish($this->metadata, array('resources/Sword.pdf','resources/example.zip',
+            'resources/guzzle-schema-1.0.json'));
+        $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
+    }
+
+    function testMetsDeposit() {
+        $sword = new SwordService(TestURL, TestUser, TestPass);
+        $resp = $sword->publishMets($this->metadata['collection'], 'resources/example.zip');
         $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getMessage());
     }
 }

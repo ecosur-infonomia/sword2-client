@@ -33,18 +33,14 @@ class SwordService {
 	function publish ($metadata, $files) {
         /* Get the href for the named collection */
         $href = $this->findHref($metadata['collection']);
-
-        /*  Construct AtomXMl document from metadata
-            TODO: Flatten metadata and setup formatting for custom Mets ingestors.
-        */
         $atom = $this->generateAtom($metadata);
         $zip = $this->constructZip($files);
-
         $response = null;
         try {
             $response = $this->postZip($href, $zip);
             $href = $this->findEditHref($response);
-            $response = $this->putAtom($href, $atom);
+            $this->putAtom($href, $atom);
+            $response = $this->complete($href);
         } catch (Exception $e) {
             if (isset($zip)) {
                 unlink($zip);
@@ -61,12 +57,27 @@ class SwordService {
         return $response;
 	}
 
+    function publishMets ($collection, $zip) {
+        $href = $this->findHref($collection);
+        $response = $this->postZip($href, $zip);
+        $href = $this->findEditHref($response);
+        return $this->complete($href);
+    }
+
+    private function complete($href) {
+        $request = $this->client->head($href);
+        $request->addHeaders(array(
+            'In-Progress'=>'false'
+        ));
+        return $request->send();
+    }
+
     private function putAtom($href, $atom) {
         $request = $this->client->put($href);
         $request->addHeaders(array(
             'Content-Type'=>'application/atom+xml;type=entry',
             'Content-Length'=>strlen($atom),
-            'In-Progress'=>'false',
+            'In-Progress'=>'true',
             'X-Packaging'=>'http://purl.org/net/sword-types/METSDSpaceSIP',
         ));
         $request->setBody($atom);
@@ -81,7 +92,7 @@ class SwordService {
             'Content-Disposition'=>'filename=' . $binary . '',
             'Content-Length'=>$eb->getContentLength(),
             'In-Progress'=>'true',
-            'X-Packaging'=>'http://purl.org/net/sword-types/METSDSpaceSIP',
+            'X-Packaging'=>'http://purl.org/net/sword/package/SimpleZip'
         ));
         $request->setBody($eb);
         return $request->send();
@@ -157,7 +168,7 @@ class SwordService {
 		/* Atom Entry */
 		$writer->startElement('atom:entry');
 		$writer->writeAttribute('xmlns:atom','http://www.w3.org/2005/Atom');
-		$writer->writeAttribute('xmlns:dcterms','http://purl.org/dc/terms');
+		$writer->writeAttribute('xmlns:dc','http://purl.org/dc/terms');
         $writer->writeAttribute('xmlns:mets','http://www.loc.gov/METS/');
 
 		foreach ($document as $key=>$val) {
