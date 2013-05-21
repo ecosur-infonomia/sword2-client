@@ -32,16 +32,18 @@ class SwordService {
 
 	function publish ($metadata, $files, $types) {
         /* Get the href for the named collection */
-        $href = $this->findHref($metadata['collection']);
         $atom = $this->generateAtom($metadata);
         $response = null;
         try {
-            $response = $this->postAtom($href, $atom);
-            $href = $this->findEditHref($response);
+            $response = $this->postAtom($this->findCollectionHref($metadata['collection']), $atom);
+            $href = $this->discoverEditMediaHref($response);
+            $seiri = $this->discover_SEIRI_ref($response);
             $tc = 0;
             foreach ($files as $file) {
                 $response = $this->postBinary($href, $file, $types[$tc++]);
             }
+            /* Get the SRI reference to close the transaction */
+            $response = $this->postComplete($seiri);
         } catch (Exception $e) {
             if (isset($zip)) {
                 unlink($zip);
@@ -57,11 +59,6 @@ class SwordService {
         /* Return HTTP response */
         return $response;
 	}
-
-    function publishMets ($collection, $zip) {
-        $href = $this->findHref($collection);
-        return $this->postBinary($href, $zip, 'false');
-    }
 
     private function postAtom($href, $atom) {
         $request = $this->client->post($href);
@@ -82,33 +79,28 @@ class SwordService {
             'Content-Type'=>"$type",
             'Content-Disposition'=>'filename=' . $binary . '',
             'Content-Length'=>$eb->getContentLength(),
-            'In-Progress'=>'false',
+            'In-Progress'=>'true',
             'X-Packaging'=>'http://purl.org/net/sword/package/Binary'
         ));
         $request->setBody($eb);
         return $request->send();
     }
 
-    private function constructZip($files) {
-        $zip = new ZipArchive();
-        /* Requires a little more work for staging (e.g. multi-process < 1 second) */
-        $zipfile = 'swordTemp_' . time() . '.zip';
-        if ($zip->open($zipfile, ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE)) {
-            foreach ($files as $file) {
-                $zip->addFile($file);
-            }
-            $zip->close();
-        }
-        return $zipfile;
+    private function postComplete($href) {
+        $request = $this->client->post($href);
+        $request->addHeaders(array(
+            'In-Progress'=>'false'
+        ));
+        return $request->send();
     }
 
-    private function findHref($collection) {
+    private function findCollectionHref($collection) {
         $href = null;
         $response = $this->service_document();
         if ($response->getStatusCode() == 200) {
             /* Walk the service document for the requested collection */
             $xml = $response->xml();
-            $this->registerForSearch($xml);
+            $this->registerNamespaceForXpath($xml);
             $xpath = "//sd:collection[atom:title/child::text()='$collection']";
             $collection = $xml->xpath ($xpath);
             $href = null;
@@ -128,26 +120,36 @@ class SwordService {
         return $href;
     }
 
-    private function registerForSearch(&$xmlref) {
-        $xmlref->registerXPathNamespace('sd','http://www.w3.org/2007/app');
-        $xmlref->registerXPathNamespace('atom','http://www.w3.org/2005/Atom');
-
+    private function discover_SEIRI_ref($response) {
+        $xpath = "*[@rel='http://purl.org/net/sword/terms/add']";
+        return $this->discover($xpath, $response);
     }
 
-    private function findEditHref($response)
+    private function discoverEditMediaHref($response)
     {
-        $receipt = $response->xml();
-        $this->registerForSearch($receipt);
-        $edit_href = null;
         $xpath = "*[@rel='edit-media']";
+        return $this->discover($xpath, $response);
+    }
+
+    private function discover($xpath, $response)
+    {
+        $href = null;
+        $receipt = $response->xml();
+        $this->registerNamespaceForXpath($receipt);
         $edit = $receipt->xpath($xpath);
         foreach ($edit[0]->attributes() as $a => $b) {
             if ($a === 'href') {
-                $edit_href = $b;
+                $href = $b;
                 break;
             }
         }
-        return $edit_href;
+        return $href;
+    }
+
+    private function registerNamespaceForXpath(&$xmlref) {
+        $xmlref->registerXPathNamespace('sd','http://www.w3.org/2007/app');
+        $xmlref->registerXPathNamespace('atom','http://www.w3.org/2005/Atom');
+
     }
 
 	/* Generates an ATOM document from a given JSON dictionary */
@@ -159,7 +161,7 @@ class SwordService {
 		/* Atom Entry */
 		$writer->startElement('atom:entry');
 		$writer->writeAttribute('xmlns:atom','http://www.w3.org/2005/Atom');
-		$writer->writeAttribute('xmlns:dcterms','http://purl.org/dc/terms');
+		$writer->writeAttribute('xmlns:dc','http://purl.org/dc/terms');
         $writer->writeAttribute('xmlns:mets','http://www.loc.gov/METS/');
 
 		foreach ($document as $key=>$val) {
@@ -187,5 +189,6 @@ class SwordService {
 	function __destroy() {
 		$this->client = null;
     }
+
 
 }
