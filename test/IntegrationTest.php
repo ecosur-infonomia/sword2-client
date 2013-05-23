@@ -7,10 +7,9 @@
 require_once('src/SwordService.php');
 require_once('TestConfig.php');
 
-class IntegrationTest extends PHPUnit_Framework_TestCase
-{
-    var $metadata = array (
-        'collection'=>'Collection of Sample Items',
+class IntegrationTest extends PHPUnit_Framework_TestCase {
+
+    var $atomMetadata = array (
         'atom:author'=>'Stuart Lewis',
         'atom:title'=>'If Sword is the Answer',
         'atom:summary'=>'The purpose of this paper is to describe the repository deposit protocol, Simple Web-service Offering Repository Deposit (SWORD), its development iteration, and some of its potential use cases. In addition, seven case studies of institutional use of SWORD are provided.',
@@ -32,7 +31,12 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
         'dc:publisher'=>'Publisher',
         'dc:references'=>'References',
         'dc:rightsHolderRights'=>'Holder',
-        'dc:source'=>'Source'
+        'dc:source'=>'Source',
+        'dc:format'=>'PDF'
+    );
+
+    var $metsMetadata = array(
+
     );
 
     function testConnectivity() {
@@ -41,10 +45,22 @@ class IntegrationTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(200,$resp->getStatusCode());
     }
 
+    /*
     function testDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $resp = $sword->publish($this->metadata, array('resources/Sword.pdf','resources/example.zip'),
-            array('application/pdf','application/zip'));
+        $map = array(
+            array('file'=>'resources/Sword.pdf', 'type'=>'application/pdf'),
+            array('file'=>'resources/Example.zip','type'=>'application/zip',
+                'package'=>'http://purl.org/net/sword/package/SimpleZip')
+        );
+        $resp = $sword->publishWithAtom('Collection of Sample Items', $this->atomMetadata, $map);
+        $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
+    }
+    */
+
+    function testMetsDeposit() {
+        $sword = new SwordService(TestURL, TestUser, TestPass);
+        $resp = $sword->publishWithMets('Collection of Sample Items', 'resources/example.zip');
         $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
     }
 }

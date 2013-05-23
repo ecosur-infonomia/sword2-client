@@ -32,46 +32,81 @@ class SwordService
         return $request->send();
     }
 
-    function publish($metadata, $files, $types)
+    function publishWithAtom($collection, $metadata, $fMap)
     {
         /* Get the href for the named collection */
         $atom = $this->generateAtom($metadata);
-        $response = $this->postAtom($this->findCollectionHref($metadata['collection']), $atom);
+        $response = $this->postXmlMetadata($this->findCollectionHref($collection), $atom);
         $href = $this->discoverEditMediaHref($response);
         $seiri = $this->discover_SEIRI_ref($response);
-        $tc = 0;
-        foreach ($files as $file) {
-            $response = $this->postBinary($href, $file, $types[$tc++]);
+        $response = $this->postBinaries($href, $fMap);
+        if ($response->getStatusCode() == 201) {
+            return $this->postComplete($seiri);
         }
-        return $this->postComplete($seiri);
     }
 
-    private function postAtom($href, $atom)
-    {
-        $request = $this->client->post($href);
-        $request->addHeaders(array(
-            'Content-Type' => 'application/atom+xml;type=entry',
-            'Content-Length' => strlen($atom),
-            'In-Progress' => 'true',
-            'X-Packaging' => 'http://purl.org/net/sword-types/METSDSpaceSIP',
-        ));
-        $request->setBody($atom);
-        return $request->send();
-    }
+    /* Publishes the mets file "$metsFile" and the binaries defined in $fMap
+       to the server for as  METs publication.
 
-    private function postBinary($href, $binary, $type)
-    {
+       TODO: Remove the $metsFile and replace with $metadata, implement  metadata to mets conversion in the same way as Atom.
+    */
+    function publishWithMets($collection, $zip) {
+        $href = $this->findCollectionHref($collection);
         $request = $this->client->post($href);
-        $eb = new \Guzzle\Http\EntityBody(fopen($binary, 'r'));
+        $eb = new \Guzzle\Http\EntityBody(fopen($zip, 'r'));
         $request->addHeaders(array(
-            'Content-Type' => "$type",
-            'Content-Disposition' => 'filename=' . $binary . '',
+            'Content-Type' => "application/zip",
+            'Content-Disposition' => 'filename=' . $zip . '',
             'Content-Length' => $eb->getContentLength(),
             'In-Progress' => 'true',
-            'X-Packaging' => 'http://purl.org/net/sword/package/Binary'
+            'Packaging' => 'http://purl.org/net/sword-types/METSDSpaceSIP'
         ));
         $request->setBody($eb);
         return $request->send();
+    }
+
+    /* Posts XML metadata to the server with a default type of atom+xml */
+    private function postXmlMetadata($href, $xml, $type = 'application/atom+xml;type=entry')
+    {
+        $request = $this->client->post($href);
+        $request->addHeaders(array(
+            'Content-Type' => $type,
+            'Content-Length' => strlen($xml),
+            'In-Progress' => 'true',
+            'Packaging' => 'http://purl.org/net/sword-types/METSDSpaceSIP',
+        ));
+        $request->setBody($xml);
+        return $request->send();
+    }
+
+    private function postBinaries($href, $bMap)
+    {
+        $lastResponse = null;
+        foreach ($bMap as $entry) {
+            $packaging = 'http://purl.org/net/sword/package/Binary';
+            /* A few error checks */
+            if (array_key_exists('package', $entry)) {
+                $packaging = $entry['package'];
+            }
+            if (!array_key_exists('file', $entry)) {
+                throw new ErrorException("Mapped file is required!");
+            }
+            if (!array_key_exists('type', $entry)) {
+                throw new Exception("Mapped file type is required!");
+            }
+            $request = $this->client->post($href);
+            $eb = new \Guzzle\Http\EntityBody(fopen($entry['file'], 'r'));
+            $request->addHeaders(array(
+                'Content-Type' => "$entry[type]",
+                'Content-Disposition' => 'filename=' . $entry['file'] . '',
+                'Content-Length' => $eb->getContentLength(),
+                'In-Progress' => 'true',
+                'Packaging' => $packaging
+            ));
+            $request->setBody($eb);
+            $lastResponse = $request->send();
+        }
+        return $lastResponse;
     }
 
     private function postComplete($href)
