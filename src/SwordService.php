@@ -45,10 +45,7 @@ class SwordService
         }
     }
 
-    /* Publishes the mets file "$metsFile" and the binaries defined in $fMap
-       to the server for as  METs publication.
-
-       TODO: Remove the $metsFile and replace with $metadata, implement  metadata to mets conversion in the same way as Atom.
+    /* Publishes the mets zip file "$zip".
     */
     function publishWithMets($collection, $zip) {
         $href = $this->findCollectionHref($collection);
@@ -58,8 +55,8 @@ class SwordService
             'Content-Type' => "application/zip",
             'Content-Disposition' => 'filename=' . $zip . '',
             'Content-Length' => $eb->getContentLength(),
-            'In-Progress' => 'true',
-            'Packaging' => 'http://purl.org/net/sword-types/METSDSpaceSIP'
+            'In-Progress' => 'false',
+            'Packaging' => 'http://purl.org/net/sword/package/METSDSpaceSIP'
         ));
         $request->setBody($eb);
         return $request->send();

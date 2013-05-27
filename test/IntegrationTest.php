@@ -45,7 +45,6 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(200,$resp->getStatusCode());
     }
 
-    /*
     function testDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
         $map = array(
@@ -56,11 +55,10 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
         $resp = $sword->publishWithAtom('Collection of Sample Items', $this->atomMetadata, $map);
         $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
     }
-    */
 
     function testMetsDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
         $resp = $sword->publishWithMets('Collection of Sample Items', 'resources/example.zip');
-        $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
+        $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
     }
 }
