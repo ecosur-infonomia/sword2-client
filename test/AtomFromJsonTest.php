@@ -14,15 +14,14 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
             '<atom:summary>A discussion on mud.</atom:summary>'.
             '</atom:entry>';
         
-        $test_array = array (
-            'atom:author'=>'Dr. Eager Beaver',
-            'atom:title'=>'Test Temporary Title',
-            'atom:id'=>'facebook.com/EagerBeaver',
-            'atom:summary'=>'A discussion on mud.'
-        );   
-        
-        $sword = new SwordService('','','',''); 
-        $actual = $sword->generateAtom($test_array);
+        $test_json = '{ ' .
+            '"atom:author" : "Dr. Eager Beaver",' .
+            '"atom:title" : "Test Temporary Title", ' .
+            '"atom:id" : "facebook.com/EagerBeaver",' .
+            '"atom:summary" : "A discussion on mud." }';
+
+        $sword = new SwordService('','','','');
+        $actual = $sword->generateAtom($test_json);
         $this->assertXmlStringEqualsXmlString($expected,$actual,$actual);
     }
 
@@ -40,19 +39,19 @@ class AtomFromJSONTest extends PHPUnit_Framework_TestCase
             '<dc:title>Test Temporary Title</dc:title>'.
             '</atom:entry>';
 
-        $test_array = array (
-            'atom:author'=>'Dr. Eager Beaver',
-            'atom:title'=>'Test Temporary Title',
-            'atom:id'=>'facebook.com/EagerBeaver',
-            'atom:summary'=>'A discussion on mud.',
-            'dc:abstract'=>'Mud. A discussion in several parts.',
-            'dc:available'=>'2013',
-            'dc:creator'=>'Beaver, Dr. Eager',
-            'dc:title'=>'Test Temporary Title'
-        );
+        $test_json = '{ ' .
+            '"atom:author" : "Dr. Eager Beaver",' .
+            '"atom:title" : "Test Temporary Title",'.
+            '"atom:id" : "facebook.com/EagerBeaver",'.
+            '"atom:summary" : "A discussion on mud.",'.
+            '"dc:abstract": "Mud. A discussion in several parts.",'.
+            '"dc:available" : "2013",'.
+            '"dc:creator" : "Beaver, Dr. Eager",'.
+            '"dc:title" : "Test Temporary Title"'.
+            ' }';
 
         $sword = new SwordService('','','','');
-        $actual = $sword->generateAtom($test_array);
+        $actual = $sword->generateAtom($test_json);
         $this->assertXmlStringEqualsXmlString($expected,$actual,$actual);
     }
 }

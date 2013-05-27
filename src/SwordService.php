@@ -37,7 +37,7 @@ class SwordService
     {
         /* Get the href for the named collection */
         $atom = $this->generateAtom($metadata);
-        $response = $this->postXmlMetadata($this->findCollectionHref($collection), $atom);
+        $response = $this->postXmlMetadata($this->discover_COLIRI_ref($collection), $atom);
         $href = $this->discover_EMIRI_ref($response);
         $seiri = $this->discover_SEIRI_ref($response);
         $response = $this->postBinaries($href, $fMap);
@@ -46,10 +46,12 @@ class SwordService
         }
     }
 
-    /* Publishes the mets zip file "$zip".
-    */
+    /*
+     * Publishes all resources in the zip, "$zip" into the collection
+     * "$collection" as a METS expressed package.
+     */
     function publishWithMets($collection, $zip) {
-        $href = $this->findCollectionHref($collection);
+        $href = $this->discover_COLIRI_ref($collection);
         $request = $this->client->post($href);
         $eb = new \Guzzle\Http\EntityBody(fopen($zip, 'r'));
         $request->addHeaders(array(
@@ -84,6 +86,59 @@ class SwordService
     function discover_EIRI_ref($response) {
         $xpath = "*[@rel='edit']";
         return $this->discover($xpath, $response);
+    }
+
+    function discover_COLIRI_ref($collection)
+    {
+        $response = $this->service_document();
+        $xpath = "//sd:collection[atom:title/child::text()='$collection']";
+        return $this->discover($xpath, $response);
+    }
+
+    /* Generates an ATOM document from a given JSON dictionary */
+    function generateAtom($metadata)
+    {
+        $document = json_decode($metadata);
+
+        $writer = new XMLWriter;
+        $writer->openMemory();
+        $writer->startDocument('1.0');
+
+        /* Atom Entry */
+        $writer->startElement('atom:entry');
+        $writer->writeAttribute('xmlns:atom', 'http://www.w3.org/2005/Atom');
+        $writer->writeAttribute('xmlns:dc', 'http://purl.org/dc/terms');
+        $writer->writeAttribute('xmlns:mets', 'http://www.loc.gov/METS/');
+
+        foreach ($document as $key => $val) {
+            if ($key == 'atom:author') {
+                /* Author is a special case */
+                $writer->startElement('atom:author');
+                $writer->startElement('atom:name');
+                $writer->text($val);
+                $writer->endElement();
+                $writer->endElement();
+            } else {
+                $writer->startElement($key);
+                $writer->text($val);
+                $writer->endElement();
+            }
+        }
+
+        /* End the atom entry */
+        $writer->endElement();
+        $writer->endDocument();
+        return $writer->outputMemory(true);
+    }
+
+    function generateMets($metadata) {
+
+    }
+
+    /* Destroy this object, ensure that the Guzzle client is nulled out */
+    function __destroy()
+    {
+        $this->client = null;
     }
 
     /* Posts XML metadata to the server with a default type of atom+xml */
@@ -139,33 +194,6 @@ class SwordService
         return $request->send();
     }
 
-    private function findCollectionHref($collection)
-    {
-        $href = null;
-        $response = $this->service_document();
-        if ($response->getStatusCode() == 200) {
-            /* Walk the service document for the requested collection */
-            $xml = $response->xml();
-            $this->registerNamespaceForXpath($xml);
-            $xpath = "//sd:collection[atom:title/child::text()='$collection']";
-            $collection = $xml->xpath($xpath);
-            $href = null;
-            if ($collection != false) {
-                foreach ($collection[0]->attributes() as $a => $b) {
-                    if ($a === 'href') {
-                        $href = $b;
-                        break;
-                    }
-                }
-            } else {
-                throw new Exception('Empty result!');
-            }
-        } else {
-            throw new RequestException($response);
-        }
-        return $href;
-    }
-
     private function discover($xpath, $response)
     {
         $href = null;
@@ -185,46 +213,5 @@ class SwordService
     {
         $xmlref->registerXPathNamespace('sd', 'http://www.w3.org/2007/app');
         $xmlref->registerXPathNamespace('atom', 'http://www.w3.org/2005/Atom');
-
-    }
-
-    /* Generates an ATOM document from a given JSON dictionary */
-    function generateAtom($document)
-    {
-        $writer = new XMLWriter;
-        $writer->openMemory();
-        $writer->startDocument('1.0');
-
-        /* Atom Entry */
-        $writer->startElement('atom:entry');
-        $writer->writeAttribute('xmlns:atom', 'http://www.w3.org/2005/Atom');
-        $writer->writeAttribute('xmlns:dc', 'http://purl.org/dc/terms');
-        $writer->writeAttribute('xmlns:mets', 'http://www.loc.gov/METS/');
-
-        foreach ($document as $key => $val) {
-            if ($key == 'atom:author') {
-                /* Author is a special case */
-                $writer->startElement('atom:author');
-                $writer->startElement('atom:name');
-                $writer->text($val);
-                $writer->endElement();
-                $writer->endElement();
-            } else {
-                $writer->startElement($key);
-                $writer->text($val);
-                $writer->endElement();
-            }
-        }
-
-        /* End the atom entry */
-        $writer->endElement();
-        $writer->endDocument();
-        return $writer->outputMemory(true);
-    }
-
-    /* Destroy this object, ensure that the Guzzle client is nulled out */
-    function __destroy()
-    {
-        $this->client = null;
     }
 }
