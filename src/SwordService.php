@@ -22,6 +22,7 @@ class SwordService
     function __construct($Base_URL, $User, $Pass)
     {
         $this->client = new Client($Base_URL);
+        $this->obo = $User; /* required for deletes */
         $authPlugin = new CurlAuthPlugin($User, $Pass);
         $this->client->addSubscriber($authPlugin);
     }
@@ -37,7 +38,7 @@ class SwordService
         /* Get the href for the named collection */
         $atom = $this->generateAtom($metadata);
         $response = $this->postXmlMetadata($this->findCollectionHref($collection), $atom);
-        $href = $this->discoverEditMediaHref($response);
+        $href = $this->discover_EMIRI_ref($response);
         $seiri = $this->discover_SEIRI_ref($response);
         $response = $this->postBinaries($href, $fMap);
         if ($response->getStatusCode() == 201) {
@@ -60,6 +61,29 @@ class SwordService
         ));
         $request->setBody($eb);
         return $request->send();
+    }
+
+    function delete($iri) {
+        $request = $this->client->delete($iri);
+        $request->addHeader('On-Behalf-Of', $this->obo);
+        return $request->send();
+    }
+
+    function discover_SEIRI_ref($response)
+    {
+        $xpath = "*[@rel='http://purl.org/net/sword/terms/add']";
+        return $this->discover($xpath, $response);
+    }
+
+    function discover_EMIRI_ref($response)
+    {
+        $xpath = "*[@rel='edit-media']";
+        return $this->discover($xpath, $response);
+    }
+
+    function discover_EIRI_ref($response) {
+        $xpath = "*[@rel='edit']";
+        return $this->discover($xpath, $response);
     }
 
     /* Posts XML metadata to the server with a default type of atom+xml */
@@ -140,18 +164,6 @@ class SwordService
             throw new RequestException($response);
         }
         return $href;
-    }
-
-    private function discover_SEIRI_ref($response)
-    {
-        $xpath = "*[@rel='http://purl.org/net/sword/terms/add']";
-        return $this->discover($xpath, $response);
-    }
-
-    private function discoverEditMediaHref($response)
-    {
-        $xpath = "*[@rel='edit-media']";
-        return $this->discover($xpath, $response);
     }
 
     private function discover($xpath, $response)

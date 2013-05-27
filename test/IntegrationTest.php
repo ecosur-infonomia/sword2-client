@@ -40,13 +40,13 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
     );
 
     function testConnectivity() {
-        $sword = new SwordService(TestURL, TestUser, TestPass);
+        $sword = new SwordService(TestURL, TestUser, TestPass, true);
         $resp = $sword->service_document();
         $this->assertEquals(200,$resp->getStatusCode());
     }
 
     function testDeposit() {
-        $sword = new SwordService(TestURL, TestUser, TestPass);
+        $sword = new SwordService(TestURL, TestUser, TestPass, true);
         $map = array(
             array('file'=>'resources/Sword.pdf', 'type'=>'application/pdf'),
             array('file'=>'resources/Example.zip','type'=>'application/zip',
@@ -54,11 +54,19 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
         );
         $resp = $sword->publishWithAtom('Collection of Sample Items', $this->atomMetadata, $map);
         $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
+        /*
+        $eiri = $sword->discover_EIRI_ref($resp);
+        $resp = $sword->delete($eiri);
+        $this->assertEquals(204,$resp->getStatusCode(), 'Content not deleted !' . $resp->getBody(true));*/
     }
 
     function testMetsDeposit() {
-        $sword = new SwordService(TestURL, TestUser, TestPass);
+        $sword = new SwordService(TestURL, TestUser, TestPass, true);
         $resp = $sword->publishWithMets('Collection of Sample Items', 'resources/example.zip');
         $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
+        /*
+        $eiri = $sword->discover_EIRI_ref($resp);
+        $resp = $sword->delete($eiri);
+        $this->assertEquals(204,$resp->getStatusCode(), 'Content not deleted !' . $resp->getBody(true));*/
     }
 }
