@@ -65,6 +65,38 @@ class SwordService
         return $request->send();
     }
 
+    /*
+     * Takes the SE-IRI of the Item to be updated, and an array
+     * of named collections for the item to be affiliated with.
+     */
+    function affiliate ($SE_IRI, $collections) {
+        /* Constructs an Atom+XML for posting to the se-iri using
+           the Affilate.xsd schema for affiliating schemas to
+           collections during a meta-data update to the server.
+        */
+        $writer = new XMLWriter;
+        $writer->openMemory();
+        $writer->startDocument('1.0');
+
+        /* Atom Entry */
+        $writer->startElement('atom:entry');
+        $writer->writeAttribute('xmlns:atom', 'http://www.w3.org/2005/Atom');
+        $writer->writeAttribute('xmlns:dc', 'http://purl.org/dc/terms');
+        $writer->writeAttribute('xmlns:mx', 'http://www.ecosur.mx/swordv2');
+
+        $writer->startElement('mx:affiliate');
+        foreach ($collections as $collection) {
+            $writer->startElement('mx:collection');
+            $writer->writeAttribute('name', $collection);
+            $writer->endElement();
+        }
+        $writer->endElement(); //mx:affiliate
+        $writer->endElement(); //atom:entry
+        $writer->endDocument();
+        $xml = $writer->outputMemory(true);
+        return $this->postXmlMetadata($SE_IRI, $xml, 'false');
+    }
+
     function delete($iri) {
         $request = $this->client->delete($iri);
         $request->addHeader('On-Behalf-Of', $this->obo);
@@ -135,14 +167,8 @@ class SwordService
 
     }
 
-    /* Destroy this object, ensure that the Guzzle client is nulled out */
-    function __destroy()
-    {
-        $this->client = null;
-    }
-
     /* Posts XML metadata to the server with a default type of atom+xml */
-    private function postXmlMetadata($href, $xml, $type = 'application/atom+xml;type=entry')
+    private function postXmlMetadata($href, $xml, $progress='true', $type = 'application/atom+xml;type=entry')
     {
         $request = $this->client->post($href);
         $request->addHeaders(array(
@@ -213,5 +239,11 @@ class SwordService
     {
         $xmlref->registerXPathNamespace('sd', 'http://www.w3.org/2007/app');
         $xmlref->registerXPathNamespace('atom', 'http://www.w3.org/2005/Atom');
+    }
+
+    /* Destroy this object, ensure that the Guzzle client is nulled out */
+    function __destroy()
+    {
+        $this->client = null;
     }
 }
