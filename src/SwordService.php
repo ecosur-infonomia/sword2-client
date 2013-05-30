@@ -106,25 +106,25 @@ class SwordService
     function discover_SEIRI_ref($response)
     {
         $xpath = "*[@rel='http://purl.org/net/sword/terms/add']";
-        return $this->discover($xpath, $response);
+        return $this->discoverHref($xpath, $response);
     }
 
     function discover_EMIRI_ref($response)
     {
         $xpath = "*[@rel='edit-media']";
-        return $this->discover($xpath, $response);
+        return $this->discoverHref($xpath, $response);
     }
 
     function discover_EIRI_ref($response) {
         $xpath = "*[@rel='edit']";
-        return $this->discover($xpath, $response);
+        return $this->discoverHref($xpath, $response);
     }
 
     function discover_COLIRI_ref($collection)
     {
         $response = $this->service_document();
         $xpath = "//sd:collection[atom:title/child::text()='$collection']";
-        return $this->discover($xpath, $response);
+        return $this->discoverHref($xpath, $response);
     }
 
     /* Generates an ATOM document from a given JSON dictionary */
@@ -222,7 +222,7 @@ class SwordService
         return $request->send();
     }
 
-    private function discover($xpath, $response)
+    private function discoverHref($xpath, $response)
     {
         $href = null;
         $receipt = $response->xml();
