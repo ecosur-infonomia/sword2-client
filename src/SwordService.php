@@ -22,7 +22,7 @@ class SwordService
     function __construct($Base_URL, $User, $Pass)
     {
         $this->client = new Client($Base_URL);
-        $this->obo = $User; /* required for deletes */
+        $this->obo = $User; /* On-behalf-of is this $User */
         $authPlugin = new CurlAuthPlugin($User, $Pass);
         $this->client->addSubscriber($authPlugin);
     }
@@ -94,7 +94,7 @@ class SwordService
         $writer->endElement(); //atom:entry
         $writer->endDocument();
         $xml = $writer->outputMemory(true);
-        return $this->postXmlMetadata($SE_IRI, $xml, 'false');
+        return $this->postXmlMetadata($SE_IRI, $xml, 'false', 'http://www.ecosur.mx/swordv2');
     }
 
     function delete($iri) {
@@ -164,18 +164,20 @@ class SwordService
     }
 
     function generateMets($metadata) {
-
+        return array();
     }
 
     /* Posts XML metadata to the server with a default type of atom+xml */
-    private function postXmlMetadata($href, $xml, $progress='true', $type = 'application/atom+xml;type=entry')
+    private function postXmlMetadata($href, $xml, $progress='true',
+        $packaging='http://purl.org/net/sword-types/METSDSpaceSIP')
     {
         $request = $this->client->post($href);
         $request->addHeaders(array(
-            'Content-Type' => $type,
+            'Content-Type' => 'application/atom+xml;type=entry',
             'Content-Length' => strlen($xml),
-            'In-Progress' => 'true',
-            'Packaging' => 'http://purl.org/net/sword-types/METSDSpaceSIP',
+            'In-Progress' => $progress,
+            'Packaging' => $packaging,
+            'On-Behalf-Of' => $this->obo
         ));
         $request->setBody($xml);
         return $request->send();
