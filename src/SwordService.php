@@ -4,15 +4,14 @@
 /**
  * SwordService.php
  *
- * Entrypoint for sword publishing service. This class expects to
- * be given a handle to the binary file to be published (unzipped,
- * this utility will zip the binary to publication with SWORD) and
- * a handle to the XML metatdata to be published along with the
- * bitstream.
+ * Entrypoint for sword publishing service. Metadata
+ * processing is handled externally, in the Metadata
+ * class.
  *
  * Author: "Andrew G. Waterman" <awaterma@ecosur.mx>
  **/
 require 'vendor/autoload.php';
+require 'Metadata.php';
 
 use Guzzle\Http\Client;
 use Guzzle\Plugin\CurlAuth\CurlAuthPlugin;
@@ -33,16 +32,34 @@ class SwordService
         return $request->send();
     }
 
-    function publishWithAtom($collection, $metadata, $fMap)
+    function publish($metadata, $fMap = null) {
+        $meta = new Metadata($metadata);
+        $parsed = $meta->parse();
+        $collections = $parsed['collection'];
+        /* First collection named will become owning collection */
+        $primary = $collections[0];
+        unset($collections[$primary]);
+        $resp = $this->publishWithAtom($primary, $meta, $fMap);
+        /* Affiliate request with named collections */
+        $se_iri = $this->discover_SEIRI_ref($resp);
+        return $this->affiliate($se_iri, $collections);
+    }
+
+    function publishWithAtom($collection, $metadata, $fMap = null)
     {
         /* Get the href for the named collection */
-        $atom = $this->generateAtom($metadata);
+        $atom = $metadata->generateAtom();
         $response = $this->postXmlMetadata($this->discover_COLIRI_ref($collection), $atom);
-        $href = $this->discover_EMIRI_ref($response);
         $seiri = $this->discover_SEIRI_ref($response);
-        $response = $this->postBinaries($href, $fMap);
-        if ($response->getStatusCode() == 201) {
+        if ($fMap != null) {
+            $emiri = $this->discover_EMIRI_ref($response);
+            $response = $this->postBinaries($emiri, $fMap);
+        }
+
+        if ($response->getStatusCode() == 200 || $response->getStatusCode() == 201) {
             return $this->postComplete($seiri);
+        } else {
+            return $response;
         }
     }
 
@@ -50,7 +67,8 @@ class SwordService
      * Publishes all resources in the zip, "$zip" into the collection
      * "$collection" as a METS expressed package.
      */
-    function publishWithMets($collection, $zip) {
+    function publishWithMets($collection, $zip)
+    {
         $href = $this->discover_COLIRI_ref($collection);
         $request = $this->client->post($href);
         $eb = new \Guzzle\Http\EntityBody(fopen($zip, 'r'));
@@ -69,7 +87,8 @@ class SwordService
      * Takes the SE-IRI of the Item to be updated, and an array
      * of named collections for the item to be affiliated with.
      */
-    function affiliate ($SE_IRI, $collections) {
+    function affiliate($SE_IRI, $collections)
+    {
         /* Constructs an Atom+XML for posting to the se-iri using
            the Affilate.xsd schema for affiliating schemas to
            collections during a meta-data update to the server.
@@ -83,7 +102,6 @@ class SwordService
         $writer->writeAttribute('xmlns:atom', 'http://www.w3.org/2005/Atom');
         $writer->writeAttribute('xmlns:dc', 'http://purl.org/dc/terms');
         $writer->writeAttribute('xmlns:mx', 'http://www.ecosur.mx/swordv2');
-
         $writer->startElement('mx:affiliate');
         foreach ($collections as $collection) {
             $writer->startElement('mx:collection');
@@ -97,7 +115,8 @@ class SwordService
         return $this->postXmlMetadata($SE_IRI, $xml, 'false', 'http://www.ecosur.mx/swordv2');
     }
 
-    function delete($iri) {
+    function delete($iri)
+    {
         $request = $this->client->delete($iri);
         $request->addHeader('On-Behalf-Of', $this->obo);
         return $request->send();
@@ -115,7 +134,8 @@ class SwordService
         return $this->discoverHref($xpath, $response);
     }
 
-    function discover_EIRI_ref($response) {
+    function discover_EIRI_ref($response)
+    {
         $xpath = "*[@rel='edit']";
         return $this->discoverHref($xpath, $response);
     }
@@ -127,49 +147,9 @@ class SwordService
         return $this->discoverHref($xpath, $response);
     }
 
-    /* Generates an ATOM document from a given JSON dictionary */
-    function generateAtom($metadata)
-    {
-        $document = json_decode($metadata);
-
-        $writer = new XMLWriter;
-        $writer->openMemory();
-        $writer->startDocument('1.0');
-
-        /* Atom Entry */
-        $writer->startElement('atom:entry');
-        $writer->writeAttribute('xmlns:atom', 'http://www.w3.org/2005/Atom');
-        $writer->writeAttribute('xmlns:dc', 'http://purl.org/dc/terms');
-        $writer->writeAttribute('xmlns:mets', 'http://www.loc.gov/METS/');
-
-        foreach ($document as $key => $val) {
-            if ($key == 'atom:author') {
-                /* Author is a special case */
-                $writer->startElement('atom:author');
-                $writer->startElement('atom:name');
-                $writer->text($val);
-                $writer->endElement();
-                $writer->endElement();
-            } else {
-                $writer->startElement($key);
-                $writer->text($val);
-                $writer->endElement();
-            }
-        }
-
-        /* End the atom entry */
-        $writer->endElement();
-        $writer->endDocument();
-        return $writer->outputMemory(true);
-    }
-
-    function generateMets($metadata) {
-        return array();
-    }
-
     /* Posts XML metadata to the server with a default type of atom+xml */
-    private function postXmlMetadata($href, $xml, $progress='true',
-        $packaging='http://purl.org/net/sword-types/METSDSpaceSIP')
+    private function postXmlMetadata($href, $xml, $progress = 'true',
+                                     $packaging = 'http://purl.org/net/sword-types/METSDSpaceSIP')
     {
         $request = $this->client->post($href);
         $request->addHeaders(array(

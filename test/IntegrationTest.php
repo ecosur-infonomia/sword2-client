@@ -17,25 +17,25 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
 
     function testAtomDeposit() {
         $atomMetaJSON = '{' .
-            '"atom:author" : "Stuart Lewis",'.
-            '"atom:title" : "If sword is the Answer",'.
-            '"atom:summary" : "The purpose of this paper is to describe the repository deposit protocol, Simple Web-service Offering Repository Deposit (SWORD), its development iteration, and some of its potential use cases. In addition, seven case studies of institutional use of SWORD are provided.",'.
-            '"atom:updated" : "May 5, 2012",'.
-            '"dc:abstract" : "Simple abstract",'.
-            '"dc:available" : "2013",'.
-            '"dc:accessRights" : "Open",'.
-            '"dc:description" : "A PDF on Sword",'.
-            '"dc:contributor" : "Stuart Lewis",'.
-            '"dc:creator" : "Stuart Lewis",'.
-            '"dc:format" : "PDF"'.
+            '"atom:author" : "Stuart Lewis" ,'.
+            '"atom:title" : "If sword is the Answer" ,'.
+            '"atom:summary" : "The purpose of this paper is to describe the repository deposit protocol, Simple Web-service Offering Repository Deposit (SWORD), its development iteration, and some of its potential use cases. In addition, seven case studies of institutional use of SWORD are provided." ,'.
+            '"atom:updated" : "May 5, 2012" ,'.
+            '"dc:abstract" : "Simple abstract" ,'.
+            '"dc:available" : "2013" ,'.
+            '"dc:accessRights" : "Open" ,'.
+            '"dc:description" : "A PDF on Sword" ,'.
+            '"dc:contributor" : "Stuart Lewis" ,'.
+            '"dc:creator" : "Stuart Lewis" ,'.
+            '"dc:format" : "PDF" '.
             '}';
         $sword = new SwordService(TestURL, TestUser, TestPass);
         $map = array(
-            array('file'=>'resources/Sword.pdf', 'type'=>'application/pdf'),
-            array('file'=>'resources/Example.zip','type'=>'application/zip',
+            array('file'=>'test/resources/Sword.pdf', 'type'=>'application/pdf'),
+            array('file'=>'test/resources/Example.zip','type'=>'application/zip',
                 'package'=>'http://purl.org/net/sword/package/SimpleZip')
         );
-        $resp = $sword->publishWithAtom('Collection of Sample Items', $atomMetaJSON, $map);
+        $resp = $sword->publishWithAtom('Collection of Sample Items', new Metadata($atomMetaJSON), $map);
         $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
         /* Commented out due to lack of support for deleting with Sword2 */
         /*
@@ -46,7 +46,7 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
 
     function testMetsDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $resp = $sword->publishWithMets('Collection of Sample Items', 'resources/example.zip');
+        $resp = $sword->publishWithMets('Collection of Sample Items', 'test/resources/example.zip');
         $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
         /* Commented out due to lack of support for deleting with Sword2 */
         /*
@@ -55,10 +55,45 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(204,$resp->getStatusCode(), 'Content not deleted !' . $resp->getBody(true));*/
     }
 
-    function testCreateAndAffiliate() {
+    function testInfonomiaMetadata() {
+        $metadata = '{'.
+            '"collection" : ["Tesis", '.
+                '"Yuself Roberto Cala De La Hera", '.
+                '"Martha García Ortega", '.
+                '"Juan Carlos Pérez Jiménez"], '.
+            '"dc:contributor" : [ "Yuself Roberto Cala De La Hera", '.
+                '"Alberto De Jesús-navarrete", '.
+                '"Martha García Ortega", '.
+                '"Pedro M. Alcolado Menéndez", '.
+                '"Juan Carlos Pérez Jiménez"], '.
+            '"dc:date.issued" : "2012" ,'.
+            '"dc:abstract" : "Muchos pequeños agricultores que viven en la Reserva de la Biosfera El Triunfo (REBITRI), han eliminado una parte de los bosques para cultivar café, contraponiendo sus objetivos de subsistencia con los objetivos de conservación de la reserva. Desde el año 2004, varios ejidos de la reserva han recibido pagos por servicios ambientales para conservar los bosques que proporcionan dichos servicios. Evitar la deforestación tiene un costo potencial para las familias, que se conoce como costo de oportunidad y hace referencia a los ingresos que los productores dejan de ganar cuando elijen una alternativa de uso del suelo que produce menos beneficios. Conocer el costo de oportunidad permite calcular cuánto debe compensarse a las familias en programas que buscan conservar los bosques. Los objetivos de este trabajo fueron 1) determinar el costo de oportunidad del cultivo de café en los ejidos Siete de Octubre y Piedra Blanca ubicados en la REBITRI, 2 ) conocer si el programa de Pagos por Servicios Ambientales-Hidrológicos (PSA-H) de la CONAFOR compensa este costo y 3) Conocer, para tener una análisis más completo, el beneficio neto del uso del bosque. Se hizo una contabilidad detallada de los costos y beneficios de la producción de café y del uso del bosque para 23 familias. En el año 2010, cuando el precio del café fue relativamente bajo, el beneficio neto del café fue $3,434/ha. El PSA-H cubriría el costo de oportunidad del 39% de los productores. Realizar una simulación con un precio dos veces más alto disminuyó el porcentaje de productores para los cuales el PSA-H sí cubre el costo de oportunidad, se redujo de 39% a 9%." ,'.
+            '"dc:available" : "2013" ,'.
+            '"dc:title" : "Análisis económico de la producción de café y uso del bosque en la Reserva de la Biosfera El Triunfo, Chiapas" ,'.
+            '"dc:subject" : ["café", '.
+                '"Productividad agrícola", '.
+                '"Análisis económico", '.
+                '"conservación de bosques",'.
+                '"Pago por servicios ecosistémicos",'.
+                '"Pago por servicios ambientales hídricos"], '.
+            '"dc:subject.classification" : "TE/338.173730972" ,'.
+            '"dc:subject.other" : ["Siete de Octubre, Ángel Albino Corzo (Chiapas, México)",'.
+                '"Piedra Blanca, La Concordia (Chiapas, México)"], '.
+            '"dc:accessRights" : "Derechos reservados a ECOSUR" ,'.
+            '"dc:format" : "27 cm." ,'.
+            '"dc:format.extent" : "126 h." ,'.
+            '"dc:format.medium" : "fot., il., mapas, retrs." ,'.
+            '"dc:language.iso" : "es" ,'.
+            '"dc:publisher" : "El Colegio de la Frontera Sur" ,'.
+            '"dc:type" : "Tesis de maestría" ,'.
+            '"dc:rae.idsibe" : "000051465" ,'.
+            '"marc.260.a" : "San Cristóbal de Las Casas, Chiapas, México" ,'.
+            '"marc.856.u" : "http://200.23.34.72:8991/F?func=service&doc_library=CFS01&doc_number=000051465&line_number=0001&func_code=DB_RECORDS&service_type=MEDIA" ,'.
+            '"dc.rae.urlportada" : "http://200.23.34.14/sibe/portadas/51465.png" '.
+        '}';
+
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $resp = $sword->publishWithMets('Collection of Sample Items', 'resources/example.zip');
-        $resp = $sword->affiliate($sword->discover_SEIRI_ref($resp), array('Collection2'));
-        $this->assertEquals(200, $resp->getStatusCode(), $resp->getBody(true));
+        $resp = $sword->publish($metadata);
+        $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
     }
 }
