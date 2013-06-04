@@ -15,8 +15,9 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals(200,$resp->getStatusCode());
     }
 
-    function testAtomDeposit() {
+    function testFileDeposit() {
         $atomMetaJSON = '{' .
+            '"collection" : "Collection of Sample Items", '.
             '"atom:author" : "Stuart Lewis" ,'.
             '"atom:title" : "If sword is the Answer" ,'.
             '"atom:summary" : "The purpose of this paper is to describe the repository deposit protocol, Simple Web-service Offering Repository Deposit (SWORD), its development iteration, and some of its potential use cases. In addition, seven case studies of institutional use of SWORD are provided." ,'.
@@ -35,24 +36,14 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
             array('file'=>'test/resources/Example.zip','type'=>'application/zip',
                 'package'=>'http://purl.org/net/sword/package/SimpleZip')
         );
-        $resp = $sword->publishWithAtom('Collection of Sample Items', new Metadata($atomMetaJSON), $map);
+        $resp = $sword->publish($atomMetaJSON, $map);
         $this->assertEquals(200,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
-        /* Commented out due to lack of support for deleting with Sword2 */
-        /*
-        $eiri = $sword->discover_EIRI_ref($resp);
-        $resp = $sword->delete($eiri);
-        $this->assertEquals(204,$resp->getStatusCode(), 'Content not deleted !' . $resp->getBody(true));*/
     }
 
     function testMetsDeposit() {
         $sword = new SwordService(TestURL, TestUser, TestPass);
-        $resp = $sword->publishWithMets('Collection of Sample Items', 'test/resources/example.zip');
+        $resp = $sword->publishZipWithMets('Collection of Sample Items', 'test/resources/example.zip');
         $this->assertEquals(201,$resp->getStatusCode(), 'Publication Not Accepted! ' . $resp->getBody(true));
-        /* Commented out due to lack of support for deleting with Sword2 */
-        /*
-        $eiri = $sword->discover_EIRI_ref($resp);
-        $resp = $sword->delete($eiri);
-        $this->assertEquals(204,$resp->getStatusCode(), 'Content not deleted !' . $resp->getBody(true));*/
     }
 
     function testInfonomiaMetadata() {
