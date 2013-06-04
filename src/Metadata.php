@@ -48,7 +48,7 @@ class Metadata {
         /* Atom Entry */
         $writer->startElement('atom:entry');
         $writer->writeAttribute('xmlns:atom', 'http://www.w3.org/2005/Atom');
-        $writer->writeAttribute('xmlns:dc', 'http://purl.org/dc/terms');
+        $writer->writeAttribute('xmlns:dcterms', 'http://purl.org/dc/terms/');
         foreach ($this->parse() as $key => $val) {
             /* Collection metadata is explicitly ignored */
             if (in_array($key, $this->filter))
