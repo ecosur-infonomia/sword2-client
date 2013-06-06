@@ -7,7 +7,9 @@ class MetadataTest extends PHPUnit_Framework_TestCase
     /* Tests the creation of an Atom XML file from a JSON string */
     function testCreateAtom() {
         $expected = '<?xml version="1.0"?>' .
-            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/">'.
+            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/" '.
+                'xmlns:dc="http://dublincore.org/documents/dcmi-terms/" '.
+                'xmlns:marc="http://dublincore.org/documents/marc-terms/">'.
             '<atom:author>Dr. Eager Beaver</atom:author>'.
             '<atom:title>Test Temporary Title</atom:title>'.
             '<atom:id>facebook.com/EagerBeaver</atom:id>'.
@@ -28,7 +30,9 @@ class MetadataTest extends PHPUnit_Framework_TestCase
     /* Creates a 'extended' atom document with Dublin Core fields */
     function testExtendedAtom() {
         $expected = '<?xml version="1.0"?>' .
-            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/">'.
+            '<atom:entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dcterms="http://purl.org/dc/terms/" '.
+                'xmlns:dc="http://dublincore.org/documents/dcmi-terms/" '.
+                'xmlns:marc="http://dublincore.org/documents/marc-terms/">'.
             '<atom:author>Dr. Eager Beaver</atom:author>'.
             '<atom:title>Test Temporary Title</atom:title>'.
             '<atom:id>facebook.com/EagerBeaver</atom:id>'.

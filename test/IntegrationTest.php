@@ -67,20 +67,20 @@ class IntegrationTest extends PHPUnit_Framework_TestCase {
                 '"conservación de bosques",'.
                 '"Pago por servicios ecosistémicos",'.
                 '"Pago por servicios ambientales hídricos"], '.
-            '"dcterms:subject.classification" : "TE/338.173730972" ,'.
-            '"dcterms:subject.other" : ["Siete de Octubre, Ángel Albino Corzo (Chiapas, México)",'.
-                '"Piedra Blanca, La Concordia (Chiapas, México)"], '.
             '"dcterms:accessRights" : "Derechos reservados a ECOSUR" ,'.
-            '"dcterms:format" : "27 cm." ,'.
-            '"dcterms:format.extent" : "126 h." ,'.
-            '"dcterms:format.medium" : "fot., il., mapas, retrs." ,'.
-            '"dcterms:language.iso" : "es" ,'.
-            '"dcterms:publisher" : "El Colegio de la Frontera Sur" ,'.
             '"dcterms:type" : "Tesis de maestría" ,'.
-            '"dcterms:rae.idsibe" : "000051465" ,'.
-            '"marc.260.a" : "San Cristóbal de Las Casas, Chiapas, México" ,'.
-            '"marc.856.u" : "http://200.23.34.72:8991/F?func=service&doc_library=CFS01&doc_number=000051465&line_number=0001&func_code=DB_RECORDS&service_type=MEDIA" ,'.
-            '"dc.rae.urlportada" : "http://200.23.34.14/sibe/portadas/51465.png" '.
+            '"dc:subject.classification" : "TE/338.173730972" ,'.
+            '"dc:subject.other" : ["Siete de Octubre, Ángel Albino Corzo (Chiapas, México)",'.
+                '"Piedra Blanca, La Concordia (Chiapas, México)"], '.
+            '"dc:format" : "27 cm." ,'.
+            '"dc:format.extent" : "126 h." ,'.
+            '"dc:format.medium" : "fot., il., mapas, retrs." ,'.
+            '"dc:language.iso" : "es" ,'.
+            '"dc:publisher" : "El Colegio de la Frontera Sur" ,'.
+            '"dc:rae.idsibe" : "000051465" ,'.
+            '"dc:rae.urlportada" : "http://200.23.34.14/sibe/portadas/51465.png", '.
+            '"marc.260.a" : "San Cristóbal de Las Casas, Chiapas, México", '.
+            '"marc.856.u" : "http://200.23.34.72:8991/F?func=service&doc_library=CFS01&doc_number=000051465&line_number=0001&func_code=DB_RECORDS&service_type=MEDIA" '.
         '}';
 
         $sword = new SwordService(TestURL, TestUser, TestPass);

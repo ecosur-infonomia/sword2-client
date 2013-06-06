@@ -49,19 +49,24 @@ class Metadata {
         $writer->startElement('atom:entry');
         $writer->writeAttribute('xmlns:atom', 'http://www.w3.org/2005/Atom');
         $writer->writeAttribute('xmlns:dcterms', 'http://purl.org/dc/terms/');
+        $writer->writeAttribute('xmlns:dc','http://dublincore.org/documents/dcmi-terms/');
+        $writer->writeAttribute('xmlns:marc','http://dublincore.org/documents/marc-terms/');
         foreach ($this->parse() as $key => $val) {
-            /* Collection metadata is explicitly ignored */
+            /* Filtered metadata is skipped */
             if (in_array($key, $this->filter))
                 continue;
 
+            /* Explode the key to find qualifier */
+            $qualified = explode('.', $key);
+
             if (is_array($val)) {
                 foreach ($val as $v) {
-                    $writer->startElement($key);
+                    $this->writeElement($qualified, $writer, $key);
                     $writer->text($v);
                     $writer->endElement();
                 }
             } else {
-                $writer->startElement($key);
+                $this->writeElement($qualified, $writer, $key);
                 $writer->text($val);
                 $writer->endElement();
             }
@@ -71,5 +76,29 @@ class Metadata {
         $writer->endElement();
         $writer->endDocument();
         return $writer->outputMemory(true);
+    }
+
+    /**
+     * @param $qualified
+     * @param $writer
+     * @param $key
+     */
+    private function writeElement($qualified, $writer, $key)
+    {
+        /* Special case for marc */
+        if ($qualified[0] == 'marc') {
+            $writer->startElement($qualified[0] . ':dcterm');
+            $writer->writeAttribute('element',$qualified[1]);
+            if (count ($qualified) > 2) {
+                $writer->writeAttribute('qualifier',$qualified[2]);
+            }
+        } else {
+            if (count($qualified) > 1) {
+                $writer->startElement($qualified[0]);
+                $writer->writeAttribute('qualifier', $qualified[1]);
+            } else {
+                $writer->startElement($key);
+            }
+        }
     }
 }

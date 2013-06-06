@@ -47,6 +47,7 @@ class SwordService
     {
         /* Get the href for the named collection */
         $atom = $metadata->generateAtom();
+        echo("\r\n" . $atom . "\r\n");
         $response = $this->postXmlMetadata($this->discover_COLIRI_ref($collection), $atom);
         $seiri = $this->discover_SEIRI_ref($response);
         if ($fMap != null) {
